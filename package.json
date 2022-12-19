@@ -1,0 +1,19 @@
+{
+  "name": "ppp-parser-converter",
+  "version": "1.0.0",
+  "description": "This is a Node.JS script for downloading, converting, and compiling into one large CSV file.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/flamfoof/ppp-parser-converter.git"
+  },
+  "author": "flamfoof",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/flamfoof/ppp-parser-converter/issues"
+  },
+  "homepage": "https://github.com/flamfoof/ppp-parser-converter#readme"
+}
