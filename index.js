@@ -26,7 +26,7 @@ program
     .option("-d, --download <params>", "The download params (all/#)")
     .option("-o, --output <path>", "The output file path")
     .option("-c, --convert <params>", "The convert params (all/#)")
-    .option("-p, --package <params>", "The package params (all/#)")
+    .option("-p, --package", "The package params (all/#)")
 
 program.parse(process.argv);
 
@@ -150,6 +150,9 @@ async function ParseConvert() {
                 if(template[el].includes(","))
                 {
                     template[el] = `"${template[el]}"`;
+                } else if (template[el].includes("\""))
+                {
+                    template[el] = template[el].replaceAll("\"", "");
                 }
             }
         });
@@ -188,6 +191,7 @@ async function PackageAllCSVIntoOne()
     var filesList = [];
     var fileCount = 0;
     var count = 0;
+    console.log("Packiang")
     
     if (!fs.existsSync(outputPath)) {
 		fs.mkdirSync(outputPath, {
@@ -203,8 +207,6 @@ async function PackageAllCSVIntoOne()
 
     fs.readdirSync(options.input).forEach(file => filesList.push(file))
 
-    console.log(filesList)
-
     if(filesList.length == 0)
     {
         console.log("No files found in the input folder");
@@ -217,38 +219,21 @@ async function PackageAllCSVIntoOne()
             console.log(err);
         })
 
-    
-    var req = fs.createReadStream(options.input + "/" + filesList[0])
-    req
-        .pipe(csv.parse())
-        .on('data', (chunk) => { 
-            console.log(count++);
-            console.log(chunk.length)
-            var xmlData = chunk.map((el) => {
-                return Object.values(el);
-            }).join("\n");
-            outputStream.write(xmlData);
-        })
-        .on("end", () => {
-            console.log("Done");
-            fileCount++;
-            CreateNewPipe(filecount)
-        })
-        .on("error", (err) => {
-            console.log(err);
-        })
+    await CreateNewPipe(fileCount)
 
-    function CreateNewPipe(fileCount)
+    async function CreateNewPipe(fileCount)
     {
-        if(fileCount < filesList.length)
+        if(fileCount > filesList.length)
         {
             return;
         }
-
+        
         var req = fs.createReadStream(options.input + "/" + filesList[fileCount])
         req
             .pipe(csv.parse())
             .on('data', (chunk) => { 
+                console.log(count++);
+
                 var xmlData = chunk.map((el) => {
                     return Object.values(el).join(",");
                 }).join("\n");
