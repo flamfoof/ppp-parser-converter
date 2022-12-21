@@ -147,12 +147,13 @@ async function ParseConvert() {
         
         Object.keys(template).forEach((el) => { 
             {
+                if (template[el].includes("\""))
+                {
+                    template[el] = template[el].replaceAll("\"", "");
+                }
                 if(template[el].includes(","))
                 {
                     template[el] = `"${template[el]}"`;
-                } else if (template[el].includes("\""))
-                {
-                    template[el] = template[el].replaceAll("\"", "");
                 }
             }
         });
@@ -191,7 +192,7 @@ async function PackageAllCSVIntoOne()
     var filesList = [];
     var fileCount = 0;
     var count = 0;
-    console.log("Packiang")
+    var currData;
     
     if (!fs.existsSync(outputPath)) {
 		fs.mkdirSync(outputPath, {
@@ -212,6 +213,8 @@ async function PackageAllCSVIntoOne()
         console.log("No files found in the input folder");
         return;
     }
+
+    console.log(filesList[fileCount]);
     
     var inputStream = fs.createReadStream(options.input)
     inputStream
@@ -219,32 +222,67 @@ async function PackageAllCSVIntoOne()
             console.log(err);
         })
 
-    await CreateNewPipe(fileCount)
+    CreateNewPipe(fileCount)
 
     async function CreateNewPipe(fileCount)
     {
-        if(fileCount > filesList.length)
+        if(fileCount >= filesList.length)
         {
+            console.log("Reached the end of the files")
             return;
         }
         
-        var req = fs.createReadStream(options.input + "/" + filesList[fileCount])
-        req
+        console.log("Piping: " + filesList[fileCount]);
+        
+        var reqWrite = fs.createReadStream(options.input + "/" + filesList[fileCount])
+        reqWrite
             .pipe(csv.parse())
-            .on('data', (chunk) => { 
-                console.log(count++);
+            .on('data', (chunk) => {
+                count++;
+                currData = chunk;
 
+                //clean up the texts
+                chunk.forEach((el) => { 
+                    if (el.includes("\""))
+                    {
+                        chunk[chunk.indexOf(el)] = el.replaceAll("\"", "");
+                    }
+                    if(el.includes(","))
+                    {
+                        chunk[chunk.indexOf(el)] = `"${el}"`;
+                    }
+                });
+                
                 var xmlData = chunk.map((el) => {
-                    return Object.values(el).join(",");
-                }).join("\n");
+                    return el;
+                }).join(",") + "\n";
+                
                 outputStream.write(xmlData);
+
+                if(count % 100000 == 0)
+                {
+                    console.log(count);
+                }
+                
+                // if(count >= 10)
+                // {
+                //     console.log("pausing")
+                //     reqWrite.pause();
+                //     // outputStream.end();
+                //     process.exit(1)
+                // }
+
+                logbuffer.flush();
             })
             .on("end", () => {
                 console.log("Done");
                 fileCount++;
+                count = 0;
                 CreateNewPipe(fileCount);
             })
             .on("error", (err) => {
+                console.log("Error on index: " + count)
+                console.log(currData)
                 console.log(err);
             })
     }
