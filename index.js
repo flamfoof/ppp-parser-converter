@@ -22,11 +22,11 @@ program
 
 program
 	.option("-i, --input <path>", "The input source file")
-    .option("-naics, --naicsList <path>", "Get the list of NAICS data")
-    .option("-d, --download <params>", "The download params (all/#)")
+    .option("-naics, --naicsList <path>", "Get the list of NAICS data from a file")
+    .option("-d, --download <params>", "The download params (all/#) TODO...")
     .option("-o, --output <path>", "The output file path")
-    .option("-c, --convert <params>", "The convert params (all/#)")
-    .option("-p, --package", "The package params (all/#)")
+    .option("-c, --convert <params>", "The convert params (all/#) TODO...")
+    .option("-p, --package", "The package all the ppp .csv files into one")
 
 program.parse(process.argv);
 
