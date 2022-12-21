@@ -193,6 +193,8 @@ async function PackageAllCSVIntoOne()
     var fileCount = 0;
     var count = 0;
     var currData;
+    var first = true;
+    var canPush = false;
     
     if (!fs.existsSync(outputPath)) {
 		fs.mkdirSync(outputPath, {
@@ -252,12 +254,22 @@ async function PackageAllCSVIntoOne()
                         chunk[chunk.indexOf(el)] = `"${el}"`;
                     }
                 });
+
+                if(count == 1 && first)
+                {
+                    first = false;
+                    canPush = true;
+                } else if(count != 1)
+                {
+                    canPush = true;
+                }
                 
                 var xmlData = chunk.map((el) => {
                     return el;
                 }).join(",") + "\n";
                 
-                outputStream.write(xmlData);
+                if(canPush)
+                    outputStream.write(xmlData);
 
                 if(count % 100000 == 0)
                 {
