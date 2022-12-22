@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/flamfoof/ppp-parser-converter#readme",
   "dependencies": {
+    "aws-sdk": "^2.1280.0",
     "commander": "^9.4.1",
     "console-buffer": "^1.1.1",
     "csv-parse": "^5.3.3",
