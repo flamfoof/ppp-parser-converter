@@ -1,6 +1,7 @@
 import fs from 'fs';
 import * as csv from 'csv-parse';
 import logbuffer from "console-buffer";
+import path from "path";
 
 export async function Init()
 {
@@ -18,6 +19,8 @@ export async function PackageAllCSVIntoOne()
     var currData;
     var first = true;
     var canPush = false;
+    var prevState = "";
+    var defaultHeaderData = "LoanNumber,DateApproved,BorrowerName,BorrowerAddress,BorrowerCity,BorrowerState,BorrowerZip,LoanStatusDate,LoanStatus,Term,InitialApprovalAmount,CurrentApprovalAmount,FranchiseName,JobsReported,NAICSCode,Industry,BusinessType,ForgivenessAmount,ForgivenessDate";
     
     if (!fs.existsSync(outputPath)) {
 		fs.mkdirSync(outputPath, {
@@ -56,13 +59,15 @@ export async function PackageAllCSVIntoOne()
             console.log("Reached the end of the files")
             return;
         }
-        
+        var fileTarget = process.env.input + "/" + filesList[fileCount]
         console.log("Piping: " + filesList[fileCount]);
         
-        var reqWrite = fs.createReadStream(process.env.input + "/" + filesList[fileCount])
+        var reqWrite = fs.createReadStream(fileTarget)
         reqWrite
             .pipe(csv.parse())
             .on('data', (chunk) => {
+                var finalFileDestination = "";
+                var stateLocation = "";
                 count++;
                 currData = chunk;
 
@@ -90,10 +95,39 @@ export async function PackageAllCSVIntoOne()
                 var xmlData = chunk.map((el) => {
                     return el;
                 }).join(",") + "\n";
+
+                stateLocation = chunk[5]
+
+                if(stateLocation == "")
+                {
+                    stateLocation = "other";
+                }
+                
+                finalFileDestination = outputPath + "/" + path.basename(fileTarget).replace(path.extname(fileTarget), "") + "_" + stateLocation + path.extname(fileTarget);
+                // console.log(finalFileDestination);
+                // if(count == 100)
+                //     process.exit(1);
                 
                 if(canPush)
-                    outputStream.write(xmlData);
+                {
+                    // outputStream.write(xmlData);
 
+                    if(chunk[5] != "BorrowerState")
+                    {
+                        if(!fs.existsSync(finalFileDestination))
+                        {
+                            fs.appendFileSync(finalFileDestination, defaultHeaderData, (err) => {
+                                console.log(err);
+                                process.exit(1);
+                            });
+                        }
+
+                        fs.appendFileSync(finalFileDestination, xmlData, (err) => {
+                            console.log(err);
+                            process.exit(1);
+                        });
+                    }
+                }
                 if(count % 100000 == 0)
                 {
                     console.log(count);

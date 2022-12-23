@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import {Command} from "commander";
 import {dirname, resolve} from "path";
 import * as path from 'path';
+import logbuffer from "console-buffer";
 
 const program = new Command();
 
